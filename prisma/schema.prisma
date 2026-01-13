@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ThesisConfig {
+  id        String   @id @default(cuid())
+  title     String
+  field     String
+  region    String?
+  method    String?
+  researchType String?
+  paradigm  String?
+  institution String?
+  culture   String?
+  notes     String?
+  globalMode Boolean @default(false)
+  level     String   @default("undergrad")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chapters  Chapter[]
+  references Reference?
+  visuals   Visuals?
+  global    GlobalConfig?
+}
+
+model Chapter {
+  id          String   @id @default(cuid())
+  thesisId    String
+  thesis      ThesisConfig @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  label       String
+  minWords    Int
+  maxWords    Int
+  visuals     Boolean  @default(false)
+  focus       String
+  order       Int
+
+  @@unique([thesisId, order])
+}
+
+model Reference {
+  id          String   @id @default(cuid())
+  thesisId    String   @unique
+  thesis      ThesisConfig @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  min         Int
+  max         Int
+  style       String
+  recentOnly  Boolean  @default(true)
+  allowGrey   Boolean  @default(true)
+  diversityNote String?
+  openAccess  Boolean  @default(false)
+}
+
+model Visuals {
+  id          String   @id @default(cuid())
+  thesisId    String   @unique
+  thesis      ThesisConfig @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  conceptual  Boolean  @default(true)
+  method      Boolean  @default(true)
+  tables      Int      @default(6)
+  figures     Int      @default(6)
+  maps        Boolean  @default(false)
+  timelines   Boolean  @default(false)
+  networks    Boolean  @default(false)
+  labelStyle  String   @default("2.1")
+  culturalSensitive Boolean @default(false)
+}
+
+model GlobalConfig {
+  id          String   @id @default(cuid())
+  thesisId    String   @unique
+  thesis      ThesisConfig @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  dataStandards Boolean @default(false)
+  multiLangRefs Boolean @default(false)
+  interdisciplinary Boolean @default(false)
+  ethicsGDPR Boolean @default(false)
+  ethicsIRB  Boolean @default(false)
+  ethicsIndigenous Boolean @default(false)
+}
